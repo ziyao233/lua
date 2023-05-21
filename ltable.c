@@ -37,6 +37,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "lvm.h"
+#include "lopcodes.h"
 
 
 /*
@@ -770,6 +771,42 @@ const TValue *luaH_getshortstr (Table *t, TString *key) {
   }
 }
 
+static inline Node *do_search (Table *t, TString *key)
+{
+	Node *n = hashstr(t, key);
+	lua_assert(key->tt == LUA_VSHRSTR);
+	for (;;) {
+		if (keyisshrstr(n) && eqshrstr(keystrval(n), key)) {
+		  return n + 1;
+		} else {
+			int nx = gnext(n);
+			if (nx == 0)
+				return t->node;
+			n += nx;
+		}
+	}
+}
+
+const TValue *luaH_getic (Table *t, TString *key, Instruction *idx) {
+	int i = GETARG_Ax(*idx);
+	if (l_likely(i)) {
+		Node *n = t->node + i - 1;
+		if (l_likely(i < sizenode(t) && keyisshrstr(n) &&
+		    eqshrstr(keystrval(n), key))) {
+			return gval(n);
+		} else {
+			Node *nn = do_search(t, key);
+			uint32_t ni = (uint32_t)(nn - t->node);
+			SETARG_Ax(*idx, i);
+			return ni ? gval(nn - 1) : &absentkey;
+		}
+	} else {
+			Node *nn = do_search(t, key);
+			uint32_t ni = (uint32_t)(nn - t->node);
+			SETARG_Ax(*idx, ni);
+			return ni ? gval(nn - 1) : &absentkey;
+	}
+}
 
 const TValue *luaH_getstr (Table *t, TString *key) {
   if (key->tt == LUA_VSHRSTR)

@@ -1890,6 +1890,32 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         updatebase(ci);  /* function has new base after adjustment */
         vmbreak;
       }
+      vmcase(OP_ICGETF) {
+        StkId ra = RA(i);
+        const TValue *slot;
+        TValue *rb = vRB(i);
+        TValue *rc = KC(i);
+        TString *key = tsvalue(rc);  /* key must be a string */
+        if (luaV_icget(L, rb, key, slot, luaH_getic, (Instruction*)(pc++))) {
+          setobj2s(L, ra, slot);
+        } else {
+          Protect(luaV_finishget(L, rb, rc, ra, slot));
+	}
+        vmbreak;
+      }
+      vmcase(OP_ICSETF) {
+        StkId ra = RA(i);
+        const TValue *slot;
+        TValue *rb = KB(i);
+        TValue *rc = RKC(i);
+        TString *key = tsvalue(rb);  /* key must be a string */
+        if (luaV_icget(L, s2v(ra), key, slot, luaH_getic, (Instruction*)(pc++))) {
+          luaV_finishfastset(L, s2v(ra), slot, rc);
+        }
+        else
+          Protect(luaV_finishset(L, s2v(ra), rb, rc, slot));
+        vmbreak;
+      }
       vmcase(OP_EXTRAARG) {
         lua_assert(0);
         vmbreak;

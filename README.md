@@ -1,7 +1,12 @@
-# Lua
+# Inline-cached Lua
 
-This is the repository of Lua development code, as seen by the Lua team. It contains the full history of all commits but is mirrored irregularly. For complete information about Lua, visit [Lua.org](https://www.lua.org/).
+This is a modified version of Lua which supports inline caching in table
+searching. This is ***NOT*** a serious project and should not be used in
+productions.
 
-Please **do not** send pull requests. To report issues, post a message to the [Lua mailing list](https://www.lua.org/lua-l.html).
+## Improvement
 
-Download official Lua releases from [Lua.org](https://www.lua.org/download.html).
+`BinaryTree.test.lua` and `BinaryTree.lua` are used for benchmarking.
+
+Compiled with the same flags, both are run for 16 times and the average
+consumed time is listed.
